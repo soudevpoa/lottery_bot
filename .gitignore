@@ -1,0 +1,45 @@
+
+---
+
+## 🛡️ `.gitignore` — Protegendo o Repositório
+
+```gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Jupyter
+.ipynb_checkpoints
+
+# Virtualenv
+venv/
+env/
+ENV/
+*.env
+
+# IDEs
+.vscode/
+.idea/
+
+# Dados e Modelos
+data/raw/
+data/processed/
+models/
+*.pkl
+*.csv
+*.xlsx
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Dados gerados
+data/processed/

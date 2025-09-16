@@ -89,40 +89,50 @@ class DataFetcher:
         return self.resultados
 
 # 🔽 Função utilitária fora da classe
-def baixar_concursos_lotomania(inicio=1, fim=2500):
-    """
-    Baixa concursos da Lotomania usando a API apiloterias.com.br
-    """
-    from dotenv import load_dotenv
-    load_dotenv()
-    token = os.getenv("APILOTERIAS_TOKEN")
+load_dotenv()
+TOKEN = os.getenv("API_LOTERIAS_TOKEN")
 
-    if not token:
-        print("❌ Token da API não encontrado no .env.")
-        return
+def baixar_concursos_lotomania(inicio=1, fim=2850):
+    path = "data/processed/lotomania_resultados.csv"
+    concursos_existentes = []
 
-    concursos = []
+    if os.path.exists(path):
+        df_existente = pd.read_csv(path)
+        concursos_existentes = df_existente["concurso"].tolist()
+        inicio = max(concursos_existentes) + 1
+        print(f"📂 Continuando a partir do concurso {inicio}...")
+    else:
+        df_existente = pd.DataFrame()
+
+    resultados = []
+
     for numero in range(inicio, fim + 1):
-        url = f"http://apiloterias.com.br/app/resultado?loteria=lotomania&token={token}&concurso={numero}"
+        url = f"https://loteriascaixa-api.herokuapp.com/api/lotomania/{numero}"
         try:
-            r = requests.get(url)
-            if r.status_code == 200 and r.text.strip():
-                dados = r.json()
+            response = requests.get(url)
+            if response.status_code == 200:
+                dados = response.json()
                 dezenas = dados.get("dezenas", [])
-                concursos.append({
-                    "concurso": dados.get("numero_concurso", numero),
-                    "data": dados.get("data_concurso", ""),
-                    "dezenas": [int(d) for d in dezenas]
-                })
-                print(f"✅ Concurso {numero} baixado.")
+                concurso_num = dados.get("concurso")
+                data_sorteio = dados.get("data")
+
+                if len(dezenas) == 20 and concurso_num and data_sorteio:
+                    resultados.append({
+                        "concurso": concurso_num,
+                        "data": data_sorteio,
+                        "dezenas": ",".join(dezenas)
+                    })
+                    print(f"✅ Concurso {numero} baixado.")
+                else:
+                    print(f"⚠️ Concurso {numero} ignorado (dados incompletos).")
             else:
-                print(f"⚠️ Concurso {numero} retornou resposta inválida.")
+                print(f"❌ Erro ao baixar concurso {numero}: {response.status_code}")
         except Exception as e:
-            print(f"❌ Erro no concurso {numero}: {e}")
-        time.sleep(0.2)
+            print(f"❌ Falha na requisição do concurso {numero}: {e}")
 
-    df = pd.DataFrame(concursos)
-    os.makedirs("data/processed", exist_ok=True)
-    df.to_csv("data/processed/lotomania_resultados.csv", index=False)
-    print(f"\n✅ {len(concursos)} concursos salvos em data/processed/lotomania_resultados.csv")
+    df_novo = pd.DataFrame(resultados)
+    df_final = pd.concat([df_existente, df_novo], ignore_index=True)
 
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    df_final.to_csv(path, index=False)
+    print(f"\n💾 Total de concursos salvos: {len(df_final)}")

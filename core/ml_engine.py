@@ -12,7 +12,11 @@ class MLEngine:
         X = []
         y = []
         for r in resultados:
-            dezenas = set(map(int, eval(r["dezenas"])) if isinstance(r["dezenas"], str) else r["dezenas"])
+            if isinstance(r["dezenas"], str):
+                dezenas = set(int(d.strip()) for d in r["dezenas"].strip("[]").split(","))
+            else:
+                dezenas = set(map(int, r["dezenas"]))
+
             linha = [1 if i in dezenas else 0 for i in range(100)]
             X.append(linha)
             y.append(1 if len(dezenas) == 0 else 0)  # Exemplo: classificar 0 acertos

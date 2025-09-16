@@ -121,6 +121,7 @@ def baixar_concursos_lotomania(inicio=1, fim=2850):
                         "concurso": concurso_num,
                         "data": data_sorteio,
                         "dezenas": ",".join(dezenas)
+
                     })
                     print(f"✅ Concurso {numero} baixado.")
                 else:

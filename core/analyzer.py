@@ -11,13 +11,15 @@ class Analyzer:
             for resultado in self.resultados:
                 dezenas_raw = resultado["dezenas"]
 
-                # Se vier como string, converte para lista
+                # Converte string "03,07,12,..." em lista de inteiros
                 if isinstance(dezenas_raw, str):
                     try:
-                        dezenas_sorteadas = set(map(int, ast.literal_eval(dezenas_raw)))
+                        dezenas_limpa = dezenas_raw.strip("[]")  # remove colchetes
+                        dezenas_sorteadas = set(int(d.strip()) for d in dezenas_limpa.split(","))
                     except Exception as e:
                         print(f"⚠️ Erro ao interpretar dezenas do concurso {resultado['concurso']}: {e}")
                         continue
+
                 else:
                     dezenas_sorteadas = set(map(int, dezenas_raw))
 
@@ -36,3 +38,4 @@ class Analyzer:
 
     def filtrar_zero_acertos(self, analises):
         return [a for a in analises if a["acertos"] == 0]
+
